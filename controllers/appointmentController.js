@@ -559,14 +559,15 @@ exports.completeAppointment = async (req, res) => {
 };
 
 // @route   GET /api/appointments/history
-// @desc    Get consultation history (completed consultations)
+// @desc    Get consultation history (completed and cancelled consultations)
 // @access  Private
 exports.getConsultationHistory = async (req, res) => {
   try {
     const { page = 1, limit = 20 } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    let query = { status: 'COMPLETED' };
+    // Include both COMPLETED and CANCELLED appointments in history
+    let query = { status: { $in: ['COMPLETED', 'CANCELLED'] } };
 
     // Filter by role
     if (req.user.role === 'LAWYER') {

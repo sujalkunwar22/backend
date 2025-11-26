@@ -304,12 +304,22 @@ exports.getMyClients = async (req, res) => {
           pendingAppointments: 0,
           confirmedAppointments: 0,
           completedAppointments: 0,
-          lastAppointmentDate: appointment.createdAt,
+          lastAppointmentDate: null, // Will be set from first non-cancelled appointment
         });
       }
 
       const clientData = clientMap.get(clientId);
-      clientData.totalAppointments++;
+      
+      // Only count non-cancelled appointments
+      if (appointment.status !== 'CANCELLED') {
+        clientData.totalAppointments++;
+        
+        // Update last appointment date only for non-cancelled appointments
+        if (clientData.lastAppointmentDate === null || 
+            appointment.createdAt > clientData.lastAppointmentDate) {
+          clientData.lastAppointmentDate = appointment.createdAt;
+        }
+      }
 
       switch (appointment.status) {
         case 'PENDING':
@@ -322,15 +332,29 @@ exports.getMyClients = async (req, res) => {
         case 'COMPLETED':
           clientData.completedAppointments++;
           break;
-      }
-
-      if (appointment.createdAt > clientData.lastAppointmentDate) {
-        clientData.lastAppointmentDate = appointment.createdAt;
+        case 'CANCELLED':
+          // Don't count cancelled appointments in stats
+          break;
       }
     });
 
-    // Convert map to array
-    const clients = Array.from(clientMap.values());
+    // Convert map to array and filter out clients with only cancelled appointments
+    // (clients should only appear if they have at least one non-cancelled appointment)
+    const clients = Array.from(clientMap.values())
+      .filter((clientData) => {
+        // Include client if they have at least one non-cancelled appointment
+        const nonCancelledCount = clientData.pendingAppointments + 
+                                  clientData.confirmedAppointments + 
+                                  clientData.completedAppointments;
+        return nonCancelledCount > 0 && clientData.lastAppointmentDate !== null;
+      })
+      .map((clientData) => {
+        // Safety check: ensure lastAppointmentDate is set (should already be set)
+        if (clientData.lastAppointmentDate === null) {
+          clientData.lastAppointmentDate = new Date();
+        }
+        return clientData;
+      });
 
     res.json({
       success: true,
