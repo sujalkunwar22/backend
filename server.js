@@ -208,6 +208,7 @@ io.on('connection', (socket) => {
       });
 
       // Send call to other user
+      console.log(`Sending incoming call to user:${otherUserId} from caller:${socket.userId}`);
       io.to(`user:${otherUserId}`).emit('incomingCall', {
         callId,
         conversationId,
@@ -215,6 +216,7 @@ io.on('connection', (socket) => {
         callType,
         offer,
       });
+      console.log(`Incoming call event emitted to user:${otherUserId}`);
     } catch (error) {
       console.error('Error starting call:', error);
       socket.emit('error', { message: 'Error starting call' });
