@@ -237,26 +237,37 @@ exports.confirmAppointment = async (req, res) => {
       });
     }
 
-    // For PROPOSED appointments: lawyer cannot confirm until client accepts first
-    if (appointment.status === 'PROPOSED' && isLawyer && !appointment.clientConfirmation) {
-      return res.status(400).json({
-        success: false,
-        message: 'Cannot confirm appointment. Please wait for the client to accept the proposed time first.',
-      });
-    }
+    // Special handling for PROPOSED appointments
+    if (appointment.status === 'PROPOSED') {
+      if (isClient) {
+        // When client accepts a proposed time, immediately confirm the appointment
+        appointment.clientConfirmation = true;
+        appointment.lawyerConfirmation = true; // Lawyer already proposed, so they're confirmed
+        appointment.status = 'CONFIRMED';
+        appointment.confirmedDate = appointment.proposedDate;
+        appointment.confirmedTime = appointment.proposedTime;
+      } else if (isLawyer) {
+        // Lawyer cannot confirm a proposed appointment (they already proposed it)
+        return res.status(400).json({
+          success: false,
+          message: 'Cannot confirm appointment. Please wait for the client to accept the proposed time first.',
+        });
+      }
+    } else {
+      // For non-PROPOSED appointments, use the original confirmation logic
+      // Set confirmation based on role
+      if (isClient) {
+        appointment.clientConfirmation = true;
+      } else if (isLawyer) {
+        appointment.lawyerConfirmation = true;
+      }
 
-    // Set confirmation based on role
-    if (isClient) {
-      appointment.clientConfirmation = true;
-    } else if (isLawyer) {
-      appointment.lawyerConfirmation = true;
-    }
-
-    // If both parties confirmed, update status
-    if (appointment.clientConfirmation && appointment.lawyerConfirmation) {
-      appointment.status = 'CONFIRMED';
-      appointment.confirmedDate = appointment.proposedDate;
-      appointment.confirmedTime = appointment.proposedTime;
+      // If both parties confirmed, update status
+      if (appointment.clientConfirmation && appointment.lawyerConfirmation) {
+        appointment.status = 'CONFIRMED';
+        appointment.confirmedDate = appointment.proposedDate;
+        appointment.confirmedTime = appointment.proposedTime;
+      }
     }
 
     await appointment.save();
