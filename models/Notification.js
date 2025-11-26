@@ -11,6 +11,7 @@ const notificationSchema = new mongoose.Schema(
       type: String,
       enum: [
         'APPOINTMENT_REQUEST',
+        'APPOINTMENT_PROPOSED',
         'APPOINTMENT_CONFIRMED',
         'APPOINTMENT_CANCELLED',
         'MESSAGE',

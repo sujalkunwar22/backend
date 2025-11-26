@@ -162,9 +162,9 @@ exports.proposeTime = async (req, res) => {
     // Create notification for client
     await createNotification(
       appointment.client._id,
-      'APPOINTMENT_REQUEST',
+      'APPOINTMENT_PROPOSED',
       'Appointment Time Proposed',
-      `${req.user.firstName} ${req.user.lastName} proposed a new time for your appointment`,
+      `${req.user.firstName} ${req.user.lastName} proposed a new time for your appointment: ${proposedDate.toLocaleDateString()} at ${proposedTime}`,
       appointment._id,
       'appointment'
     );
