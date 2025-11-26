@@ -30,7 +30,7 @@ const server = http.createServer(app);
 // Trust proxy - Required for Render and other reverse proxies
 app.set('trust proxy', 1);
 
-// Connect to database
+// Connect to database (must be before importing routes that use models)
 connectDB();
 
 // Initialize Socket.IO

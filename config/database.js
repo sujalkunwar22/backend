@@ -27,6 +27,18 @@ const connectDB = async () => {
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
     console.log(`   Database: ${conn.connection.name}`);
     
+    // Verify database and list collections
+    try {
+      const db = conn.connection.db;
+      const collections = await db.listCollections().toArray();
+      console.log(`   Collections found: ${collections.length}`);
+      if (collections.length > 0) {
+        console.log(`   Collections: ${collections.map(c => c.name).join(', ')}`);
+      }
+    } catch (err) {
+      console.warn('   ⚠️ Could not list collections:', err.message);
+    }
+    
     // Handle connection events
     mongoose.connection.on('error', (err) => {
       console.error('❌ MongoDB connection error:', err);
@@ -38,6 +50,27 @@ const connectDB = async () => {
 
     mongoose.connection.on('reconnected', () => {
       console.log('✅ MongoDB reconnected');
+    });
+    
+    // Ensure indexes are created
+    mongoose.connection.once('open', async () => {
+      console.log('📊 Ensuring database indexes are created...');
+      try {
+        // Import models to ensure they're registered and indexes are created
+        require('../models/User');
+        require('../models/Appointment');
+        require('../models/Conversation');
+        require('../models/Message');
+        require('../models/Document');
+        require('../models/LawyerProfile');
+        require('../models/LegalTemplate');
+        require('../models/Notification');
+        require('../models/Review');
+        require('../models/VerificationRequest');
+        console.log('✅ All models loaded and indexes ready');
+      } catch (err) {
+        console.warn('⚠️ Error loading models:', err.message);
+      }
     });
     
   } catch (error) {
