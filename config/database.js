@@ -8,6 +8,16 @@ const connectDB = async () => {
     }
 
     console.log('🔌 Connecting to MongoDB...');
+    console.log(`   URI: ${process.env.MONGODB_URI ? process.env.MONGODB_URI.replace(/\/\/[^:]+:[^@]+@/, '//***:***@') : 'NOT SET'}`);
+    
+    // Validate MONGODB_URI format
+    if (!process.env.MONGODB_URI || process.env.MONGODB_URI.includes('localhost') || process.env.MONGODB_URI.includes('127.0.0.1')) {
+      console.error('❌ Invalid MONGODB_URI:');
+      console.error('   MONGODB_URI appears to be pointing to localhost');
+      console.error('   For Render deployment, use MongoDB Atlas connection string');
+      console.error('   Format: mongodb+srv://username:password@cluster.mongodb.net/database');
+      process.exit(1);
+    }
     
     const conn = await mongoose.connect(process.env.MONGODB_URI, {
       useNewUrlParser: true,

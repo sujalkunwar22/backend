@@ -23,12 +23,15 @@ const adminRoutes = require('./routes/admin');
 const verificationRoutes = require('./routes/verification');
 const profileRoutes = require('./routes/profile');
 
-// Connect to database
-connectDB();
-
 // Initialize Express app
 const app = express();
 const server = http.createServer(app);
+
+// Trust proxy - Required for Render and other reverse proxies
+app.set('trust proxy', 1);
+
+// Connect to database
+connectDB();
 
 // Initialize Socket.IO
 const io = new Server(server, {
