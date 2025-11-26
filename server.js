@@ -193,6 +193,17 @@ io.on('connection', (socket) => {
       const { callId, conversationId, otherUserId, callType, offer } = data;
       const Conversation = require('./models/Conversation');
       
+      console.log(`Starting call - callId: ${callId}, caller: ${socket.userId}, callee: ${otherUserId}`);
+      
+      // Check if there's already an active call for this conversation
+      for (const [existingCallId, existingCall] of activeCalls.entries()) {
+        if (existingCall.conversationId === conversationId && 
+            (existingCall.callerId === socket.userId || existingCall.calleeId === socket.userId)) {
+          console.log(`Active call ${existingCallId} already exists for this conversation, cleaning it up`);
+          activeCalls.delete(existingCallId);
+        }
+      }
+      
       // Verify conversation exists and user is participant
       const conversation = await Conversation.findById(conversationId);
       if (!conversation || !conversation.participants.some(p => p.toString() === socket.userId.toString())) {
@@ -206,6 +217,7 @@ io.on('connection', (socket) => {
         calleeId: otherUserId,
         conversationId,
       });
+      console.log(`Call ${callId} stored in active calls`);
 
       // Send call to other user
       console.log(`Sending incoming call to user:${otherUserId} from caller:${socket.userId}`);
@@ -243,15 +255,20 @@ io.on('connection', (socket) => {
 
   socket.on('rejectCall', (data) => {
     const { callId } = data;
+    console.log(`Call rejected - callId: ${callId}, userId: ${socket.userId}`);
     const callInfo = activeCalls.get(callId);
     if (callInfo) {
       // Notify caller that call was rejected
+      console.log(`Notifying caller ${callInfo.callerId} that call was rejected`);
       io.to(`user:${callInfo.callerId}`).emit('callRejected', {
         callId,
       });
+      // Clean up the call from active calls
       activeCalls.delete(callId);
+      console.log(`Call ${callId} removed from active calls`);
     } else {
-      // Fallback to broadcast
+      console.log(`Call ${callId} not found in active calls, broadcasting rejection`);
+      // Fallback to broadcast to all sockets
       socket.broadcast.emit('callRejected', {
         callId,
       });
@@ -260,16 +277,21 @@ io.on('connection', (socket) => {
 
   socket.on('endCall', (data) => {
     const { callId } = data;
+    console.log(`Call ended - callId: ${callId}, userId: ${socket.userId}`);
     const callInfo = activeCalls.get(callId);
     if (callInfo) {
       // Notify other participant that call ended
       const otherUserId = callInfo.callerId === socket.userId ? callInfo.calleeId : callInfo.callerId;
+      console.log(`Notifying other user ${otherUserId} that call ended`);
       io.to(`user:${otherUserId}`).emit('callEnded', {
         callId,
       });
+      // Clean up the call from active calls
       activeCalls.delete(callId);
+      console.log(`Call ${callId} removed from active calls`);
     } else {
-      // Fallback to broadcast
+      console.log(`Call ${callId} not found in active calls, broadcasting end`);
+      // Fallback to broadcast to all sockets
       socket.broadcast.emit('callEnded', {
         callId,
       });
