@@ -79,10 +79,17 @@ exports.getMessages = async (req, res) => {
 
     const total = await Message.countDocuments({ conversation: conversationId });
 
+    // Format messages to include senderId explicitly
+    const formattedMessages = messages.map(msg => {
+      const msgObj = msg.toObject();
+      msgObj.senderId = msg.sender._id.toString();
+      return msgObj;
+    });
+
     res.json({
       success: true,
       data: {
-        messages: messages.reverse(), // Reverse to show oldest first
+        messages: formattedMessages.reverse(), // Reverse to show oldest first
         pagination: {
           page: parseInt(page),
           limit: parseInt(limit),
