@@ -147,7 +147,16 @@ exports.proposeTime = async (req, res) => {
       });
     }
 
-    appointment.proposedDate = new Date(proposedDate);
+    // Parse and validate the proposed date
+    const newProposedDate = new Date(proposedDate);
+    if (isNaN(newProposedDate.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid date format',
+      });
+    }
+
+    appointment.proposedDate = newProposedDate;
     appointment.proposedTime = proposedTime;
     appointment.status = 'PROPOSED';
     appointment.lawyerConfirmation = false;
@@ -159,12 +168,19 @@ exports.proposeTime = async (req, res) => {
       { path: 'lawyer', select: 'firstName lastName email phone' },
     ]);
 
+    // Format date for notification message (using a simple format to avoid locale issues)
+    const dateStr = newProposedDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+    const [year, month, day] = dateStr.split('-');
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'];
+    const formattedDate = `${monthNames[parseInt(month) - 1]} ${parseInt(day)}, ${year}`;
+
     // Create notification for client
     await createNotification(
       appointment.client._id,
       'APPOINTMENT_PROPOSED',
       'Appointment Time Proposed',
-      `${req.user.firstName} ${req.user.lastName} proposed a new time for your appointment: ${proposedDate.toLocaleDateString()} at ${proposedTime}`,
+      `${req.user.firstName} ${req.user.lastName} proposed a new time for your appointment: ${formattedDate} at ${proposedTime}`,
       appointment._id,
       'appointment'
     );
