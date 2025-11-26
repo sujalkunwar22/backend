@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: nepaladvocate-backend
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Note: PORT is automatically set by Render, no need to specify it
+      # Add these environment variables in Render dashboard:
+      # - MONGODB_URI (your MongoDB connection string)
+      # - JWT_SECRET (your secret key - use a strong random string)
+      # - JWT_EXPIRES_IN (e.g., 7d)
+      # - CORS_ORIGIN (your frontend URL, e.g., https://your-app.com)
+      # - UPLOAD_DIR (./uploads - optional, defaults to ./uploads)
+

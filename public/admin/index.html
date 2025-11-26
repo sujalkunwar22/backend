@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NepalAdvocate Admin Panel</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="screen active">
+        <div class="login-container">
+            <div class="login-card">
+                <h1>NepalAdvocate</h1>
+                <h2>Admin Panel</h2>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Login</button>
+                    <div id="loginError" class="error-message"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Screen -->
+    <div id="dashboardScreen" class="screen">
+        <nav class="navbar">
+            <div class="nav-brand">NepalAdvocate Admin</div>
+            <div class="nav-user">
+                <span id="adminName"></span>
+                <button id="logoutBtn" class="btn btn-secondary">Logout</button>
+            </div>
+        </nav>
+
+        <div class="container">
+            <div class="sidebar">
+                <ul class="nav-menu">
+                    <li><a href="#" data-page="dashboard" class="nav-link active">Dashboard</a></li>
+                    <li><a href="#" data-page="verification-requests" class="nav-link">Verification Requests</a></li>
+                    <li><a href="#" data-page="lawyers" class="nav-link">All Lawyers</a></li>
+                    <li><a href="#" data-page="users" class="nav-link">Manage Users</a></li>
+                    <li><a href="#" data-page="stats" class="nav-link">Statistics</a></li>
+                </ul>
+            </div>
+
+            <div class="main-content">
+                <!-- Dashboard Page -->
+                <div id="dashboardPage" class="page active">
+                    <h1>Dashboard</h1>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3>Total Users</h3>
+                            <p id="totalUsers">-</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Lawyers</h3>
+                            <p id="totalLawyers">-</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Clients</h3>
+                            <p id="totalClients">-</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Pending Verifications</h3>
+                            <p id="pendingVerifications">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Verification Requests Page -->
+                <div id="verificationRequestsPage" class="page">
+                    <div class="page-header">
+                        <h1>Verification Requests</h1>
+                        <button id="refreshRequestsBtn" class="btn btn-secondary">Refresh</button>
+                    </div>
+                    <div class="filter-bar">
+                        <select id="requestStatusFilter">
+                            <option value="">All Requests</option>
+                            <option value="PENDING">Pending</option>
+                            <option value="APPROVED">Approved</option>
+                            <option value="REJECTED">Rejected</option>
+                        </select>
+                    </div>
+                    <div id="verificationRequestsList" class="list-container"></div>
+                </div>
+
+                <!-- Verify Lawyers Page -->
+                <div id="lawyersPage" class="page">
+                    <div class="page-header">
+                        <h1>All Lawyers</h1>
+                        <button id="refreshLawyersBtn" class="btn btn-secondary">Refresh</button>
+                    </div>
+                    <div class="filter-bar">
+                        <label>
+                            <input type="checkbox" id="showOnlyUnverified"> Show only unverified
+                        </label>
+                    </div>
+                    <div id="lawyersList" class="list-container"></div>
+                </div>
+
+                <!-- Manage Users Page -->
+                <div id="usersPage" class="page">
+                    <div class="page-header">
+                        <h1>Manage Users</h1>
+                        <button id="refreshUsersBtn" class="btn btn-secondary">Refresh</button>
+                    </div>
+                    <div class="filter-bar">
+                        <select id="userRoleFilter">
+                            <option value="">All Roles</option>
+                            <option value="CLIENT">Clients</option>
+                            <option value="LAWYER">Lawyers</option>
+                            <option value="ADMIN">Admins</option>
+                        </select>
+                    </div>
+                    <div id="usersList" class="list-container"></div>
+                </div>
+
+                <!-- Statistics Page -->
+                <div id="statsPage" class="page">
+                    <h1>Platform Statistics</h1>
+                    <div id="statsContent">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <h3>Total Users (Excluding Admins)</h3>
+                                <p id="statsTotalUsers">-</p>
+                            </div>
+                            <div class="stat-card">
+                                <h3>Total Lawyers</h3>
+                                <p id="statsTotalLawyers">-</p>
+                            </div>
+                            <div class="stat-card">
+                                <h3>Total Clients</h3>
+                                <p id="statsTotalClients">-</p>
+                            </div>
+                            <div class="stat-card">
+                                <h3>Pending Verifications</h3>
+                                <p id="statsPendingVerifications">-</p>
+                            </div>
+                            <div class="stat-card">
+                                <h3>Total Appointments</h3>
+                                <p id="statsTotalAppointments">-</p>
+                            </div>
+                            <div class="stat-card">
+                                <h3>Total Templates</h3>
+                                <p id="statsTotalTemplates">-</p>
+                            </div>
+                            <div class="stat-card">
+                                <h3>Total Documents</h3>
+                                <p id="statsTotalDocuments">-</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+
