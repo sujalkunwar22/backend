@@ -237,6 +237,14 @@ exports.confirmAppointment = async (req, res) => {
       });
     }
 
+    // For PROPOSED appointments: lawyer cannot confirm until client accepts first
+    if (appointment.status === 'PROPOSED' && isLawyer && !appointment.clientConfirmation) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot confirm appointment. Please wait for the client to accept the proposed time first.',
+      });
+    }
+
     // Set confirmation based on role
     if (isClient) {
       appointment.clientConfirmation = true;
@@ -419,6 +427,76 @@ exports.acceptAppointment = async (req, res) => {
     });
   } catch (error) {
     console.error('Accept appointment error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message,
+    });
+  }
+};
+
+// @route   PATCH /api/appointments/:id/cancel
+// @desc    Cancel appointment (Client can cancel PROPOSED appointments, Lawyer can reject PENDING)
+// @access  Private
+exports.cancelAppointment = async (req, res) => {
+  try {
+    const appointment = await Appointment.findById(req.params.id);
+
+    if (!appointment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Appointment not found',
+      });
+    }
+
+    const isClient = appointment.client.toString() === req.user._id.toString();
+    const isLawyer = appointment.lawyer.toString() === req.user._id.toString();
+
+    if (!isClient && !isLawyer) {
+      return res.status(403).json({
+        success: false,
+        message: 'You are not authorized to cancel this appointment',
+      });
+    }
+
+    // Client can cancel PROPOSED appointments
+    if (isClient && appointment.status === 'PROPOSED') {
+      appointment.status = 'CANCELLED';
+      await appointment.save();
+      await appointment.populate([
+        { path: 'client', select: 'firstName lastName email phone' },
+        { path: 'lawyer', select: 'firstName lastName email phone' },
+      ]);
+
+      // Notify lawyer
+      await createNotification(
+        appointment.lawyer._id,
+        'APPOINTMENT_CANCELLED',
+        'Appointment Cancelled',
+        `${req.user.firstName} ${req.user.lastName} cancelled the appointment`,
+        appointment._id,
+        'appointment'
+      );
+
+      req.io.emit(`appointment:${appointment.lawyer._id}`, {
+        type: 'APPOINTMENT_CANCELLED',
+        appointment: appointment,
+      });
+
+      return res.json({
+        success: true,
+        message: 'Appointment cancelled successfully',
+        data: { appointment },
+      });
+    }
+
+    // For other cases, use reject (lawyer rejecting PENDING appointments)
+    return res.status(400).json({
+      success: false,
+      message: 'Cannot cancel this appointment. Only PROPOSED appointments can be cancelled by clients.',
+    });
+  } catch (error) {
+    console.error('Cancel appointment error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error',

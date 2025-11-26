@@ -7,6 +7,7 @@ const {
   confirmAppointment,
   acceptAppointment,
   rejectAppointment,
+  cancelAppointment,
   completeAppointment,
   getMyAppointments,
   getAppointment,
@@ -32,6 +33,7 @@ router.post('/', authenticateJWT, createAppointmentValidation, createAppointment
 router.patch('/:id/propose', authenticateJWT, proposeTimeValidation, proposeTime);
 router.patch('/:id/accept', authenticateJWT, acceptAppointment);
 router.patch('/:id/reject', authenticateJWT, rejectAppointment);
+router.patch('/:id/cancel', authenticateJWT, cancelAppointment);
 router.patch('/:id/confirm', authenticateJWT, confirmAppointment);
 router.patch('/:id/complete', authenticateJWT, completeAppointment);
 router.get('/history', authenticateJWT, getConsultationHistory);
