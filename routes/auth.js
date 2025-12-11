@@ -17,14 +17,20 @@ const registerValidation = [
   body('role').isIn(['CLIENT', 'LAWYER']),
   body('firstName').trim().notEmpty(),
   body('lastName').trim().notEmpty(),
-  body('acceptedTerms')
-    .toBoolean()
-    .equals(true)
-    .withMessage('You must accept the Terms of Service'),
-  body('acceptedPrivacy')
-    .toBoolean()
-    .equals(true)
-    .withMessage('You must accept the Privacy Policy'),
+  body('acceptedTerms').custom((value) => {
+    const boolValue = value === true || value === 'true' || value === '1' || value === 1;
+    if (!boolValue) {
+      throw new Error('You must accept the Terms of Service');
+    }
+    return true;
+  }),
+  body('acceptedPrivacy').custom((value) => {
+    const boolValue = value === true || value === 'true' || value === '1' || value === 1;
+    if (!boolValue) {
+      throw new Error('You must accept the Privacy Policy');
+    }
+    return true;
+  }),
 ];
 
 const loginValidation = [
